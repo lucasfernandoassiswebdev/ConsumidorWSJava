@@ -25,41 +25,65 @@ public class HttpExemplo {
     private final String USER_AGENT = "Mozilla/5.0";
 
     public static void main(String[] args) throws Exception {
+        //Exemplo GET
         HttpExemplo http = new HttpExemplo();
         String chamadaWS = "http://localhost:8080/FazendaWerbService/webresources/fazenda/usuario/l.assis@eddydata";
-        String json = http.sendGet(chamadaWS);
+        String json = http.sendRequest(chamadaWS, "GET");
         System.out.println(json);
 
         Gson g = new Gson();
         Usuario usuario = new Usuario();
-        Type usuarioType = new TypeToken<Usuario>() {}.getType();
+        Type usuarioType = new TypeToken<Usuario>() {
+        }.getType();
+
         usuario = g.fromJson(json, usuarioType);
 
-        System.out.println("\nDados do usuário convertido: \n");
-        System.out.println("--------------------------------------");
-        System.out.println("e-mail: " + usuario.getEmail());
-        System.out.println("perfil: " + usuario.getPerfil());
-        System.out.println("login: " + usuario.getLogin());
-        System.out.println("senha: " + usuario.getSenha());
+        http.exibeInformacoes(usuario);
+
+        //Exemplo POST 
+        usuario.setLogin("crud.webservice@eddydata");
+        usuario.setEmail("crud.webservice@eddydata");
+        usuario.setSenha("596");
+        usuario.setPerfil("suporte");
+
+        json = g.toJson(usuario, usuarioType);
+
+        chamadaWS = "http://localhost:8080/FazendaWerbService/webresources/fazenda/usuario/inserir";
+        
+        http.sendRequest(chamadaWS, json, "POST");
+
+        //Eexemplo PUT
+        usuario.setLogin("crud.webservice@eddydata");
+        usuario.setEmail("crud.webservice.alteracao@eddydata");
+        usuario.setSenha("596695");
+        usuario.setPerfil("suporte");
+        
+        json = g.toJson(usuario, usuarioType);
+
+        chamadaWS = "http://localhost:8080/FazendaWerbService/webresources/fazenda/usuario/alterar";
+        
+        http.sendRequest(chamadaWS, json, "PUT");
+        
+        //Exemplo DELETE
+        chamadaWS = "http://localhost:8080/FazendaWerbService/webresources/fazenda/usuario/excluir/exemplo.email@eddydata";
+        http.sendRequest(chamadaWS, "DELETE");
     }
 
-    // HTTP GET request
-    private String sendGet(String url) throws Exception {
+    private String sendRequest(String url, String method) throws Exception {
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
         // optional default is GET
-        con.setRequestMethod("GET");
+        con.setRequestMethod(method);
 
         //add request header
         con.setRequestProperty("User-Agent", USER_AGENT);
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'GET' request to URL : " + url);
+        System.out.println("\nSending '" + method + "' request to URL : " + url);
         System.out.println("Response Code : " + responseCode);
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuffer response = new StringBuffer();
 
@@ -71,19 +95,15 @@ public class HttpExemplo {
         return response.toString();
     }
 
-    // HTTP POST request
-    private void sendPost() throws Exception {
-
-        String url = "https://selfsolve.apple.com/wcResults.do";
+    private void sendRequest(String url, String urlParameters, String method) throws Exception {
         URL obj = new URL(url);
         HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
         //add reuqest header
-        con.setRequestMethod("POST");
+        con.setRequestMethod(method);
+        con.setRequestProperty("Content-Type", "application/json");
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-
-        String urlParameters = "sn=C02G8416DRJM&cn=&locale=&caller=&num=12345";
 
         // Send post request
         con.setDoOutput(true);
@@ -93,7 +113,7 @@ public class HttpExemplo {
         wr.close();
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'POST' request to URL : " + url);
+        System.out.println("\nSending '" + method + "' request to URL : " + url);
         System.out.println("Post parameters : " + urlParameters);
         System.out.println("Response Code : " + responseCode);
 
@@ -112,4 +132,12 @@ public class HttpExemplo {
 
     }
 
+    private void exibeInformacoes(Usuario usuario) {
+        System.out.println("\nDados do usuário convertido: \n");
+        System.out.println("--------------------------------------");
+        System.out.println("e-mail: " + usuario.getEmail());
+        System.out.println("perfil: " + usuario.getPerfil());
+        System.out.println("login: " + usuario.getLogin());
+        System.out.println("senha: " + usuario.getSenha());
+    }
 }
